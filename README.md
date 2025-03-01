@@ -1,7 +1,7 @@
 # Text Classification Project
 
 ## Overview
-This project implements Naive Bayes and Logistic Regression for spam detection using email datasets. The code converts emails into numerical feature representations (Bag of Words and Bernoulli approaches) and classifies them using **Multinomial Naive Bayes, Bernoulli Naive Bayes, and Logistic Regression**.
+This project for CS4375 implements Naive Bayes and Logistic Regression for spam detection using email datasets. 
 
 ## File Structure 
 This is how I organized my file structure in my local environment.

@@ -3,16 +3,23 @@
 ## Overview
 This project implements Naive Bayes and Logistic Regression for spam detection using email datasets. The code converts emails into numerical feature representations (Bag of Words and Bernoulli approaches) and classifies them using **Multinomial Naive Bayes, Bernoulli Naive Bayes, and Logistic Regression**.
 
+## File Structure 
+This is how I organized my file structure in my local environment.
+```bash
+text_classification_project/
+│── processed_data/         # directory containing generated CSV files
+│── datasets/               # original email datasets given by professor
+│── first_phase.py          # preprocesses datasets to convert to vectors
+│── second_phase.py         # implements Multinomial Naive Bayes classifier
+│── third_phase.py          # implements Bernoulli Naive Bayes classifier
+│── fourth_phase.py         # implements Logistic Regression
+│── README.md               # documentation
+```
 
 ## Requirements
-The requirements for this project were Python 3.9 or later. I also used the following dependencies:
+The requirements for this project were Python 3.9 or later. I am running Python 3.12.4 in my terminal, and I also used the following dependencies:
 ```bash
 pip install numpy pandas scikit-learn nltk
-```
-If you are using **macOS**, ensure that VS Code is using the correct Python interpreter:
-```bash
-which python3   # Should return a path like /Library/Frameworks/Python.framework/Versions/3.12/bin/python3
-python3 -m pip install --upgrade pip
 ```
 
 ## Usage

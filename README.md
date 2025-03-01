@@ -21,8 +21,15 @@ The requirements for this project were Python 3.9 or later. I am running Python 
 ```bash
 pip install numpy pandas scikit-learn nltk
 ```
+NumPy: I used for numerical computations and matrix operations.
 
-## Usage
+Pandas: I used to load, process, and manage CSV datasets.
+
+Scikit-learn: I used for machine learning utilities like accuracy, precision, and F1-score calculations.
+
+NLTK: I used for NLP tasks like stopword removal and tokenization.
+
+## Running the Project
 ### Step 1: Preprocessing (Feature Extraction)
 Run the following command to process email datasets and generate feature matrices:
 ```bash

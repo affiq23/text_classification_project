@@ -22,9 +22,6 @@ text_classification_project/
 
 ## Requirements
 The requirements for this project were Python 3.9 or later. I am running Python 3.12.4 in my terminal, and I also used the following dependencies:
-```bash
-pip install numpy pandas scikit-learn nltk
-```
 NumPy: I used for numerical computations and matrix operations.
 
 Pandas: I used to load, process, and manage CSV datasets.
@@ -32,6 +29,9 @@ Pandas: I used to load, process, and manage CSV datasets.
 Scikit-learn: I used for machine learning utilities like accuracy, precision, and F1-score calculations.
 
 NLTK: I used for NLP tasks like stopword removal and tokenization.
+```bash
+pip install numpy pandas scikit-learn nltk
+```
 
 ## Running the Project
 ### Step 1: Preprocessing (Feature Extraction)

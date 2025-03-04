@@ -1,0 +1,5 @@
+Multinomial Naive Bayes (Bag of Words) Evaluation:
+Accuracy: 0.9364
+Precision: 0.9000
+Recall: 0.9060
+F1 Score: 0.9030

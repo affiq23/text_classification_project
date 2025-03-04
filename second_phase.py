@@ -2,126 +2,96 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
-def train_multinomial_nb(train_df):
-    """
-    Train a Multinomial Naive Bayes classifier.
+# train a Multinomial Naive Bayes classifier using BoW representation
+def train_multinomial_naive_bayes(training_dataframe):
+    # separate word counts from labels (spam/ham)
+    feature_matrix = training_dataframe.drop('label', axis=1).values  # shape: (num_samples, vocab_size)
+    class_labels = training_dataframe['label'].values  # 1 for spam, 0 for ham
+    num_samples, vocabulary_size = feature_matrix.shape  # get dataset dimensions
+    unique_classes = [0, 1]  # define possible classes (ham/spam)
+    class_prior_probabilities = {}  # prior probabilities for each class
+    class_word_counts = {}  # stores word frequencies per class
+    total_class_word_counts = {}
+
+    # compute word counts and class priors
+    for current_class in unique_classes:
+        class_indices = np.where(class_labels == current_class)[0]  # find all emails of class
+        class_specific_samples = feature_matrix[class_indices]  # extract class-specific samples
+        word_count_per_class = np.sum(class_specific_samples, axis=0)  # sum up word counts for this class
+        class_word_counts[current_class] = word_count_per_class
+        total_class_word_counts[current_class] = np.sum(word_count_per_class)  # Total words in class
+        class_prior_probabilities[current_class] = len(class_indices) / num_samples  # P(class) = num_class_samples / total_samples
+
+    # compute likelihoods with Laplace smoothing (add-one smoothing)
+    word_likelihoods = {}
+    for current_class in unique_classes:
+        word_likelihoods[current_class] = (class_word_counts[current_class] + 1) / (total_class_word_counts[current_class] + vocabulary_size)  # smoothed probabilities
+        word_likelihoods[current_class] = np.log(word_likelihoods[current_class])  # convert to log-space for numerical stability
+
+    # convert priors to log-space
+    log_class_priors = {c: np.log(class_prior_probabilities[c]) for c in unique_classes}
     
-    Args:
-        train_df (DataFrame): Training data with features as columns (Bag-of-Words counts)
-                              and a 'label' column (1 for spam, 0 for ham).
-                              
-    Returns:
-        model (dict): Contains log class priors and log likelihoods for each word per class.
-    """
-    # Separate features and labels
-    X_train = train_df.drop('label', axis=1).values  # shape: (n_train, V)
-    y_train = train_df['label'].values  # 1 for spam, 0 for ham
-    n_train, V = X_train.shape
-
-    # Define the classes
-    classes = [0, 1]
-    class_priors = {}
-    word_counts = {}  # total count per word for each class
-    total_word_counts = {}  # sum of all word counts for each class
-
-    # Compute counts and class priors
-    for c in classes:
-        indices = np.where(y_train == c)[0]
-        X_c = X_train[indices]
-        count_c = np.sum(X_c, axis=0)  # sum counts for each word
-        word_counts[c] = count_c
-        total_word_counts[c] = np.sum(count_c)
-        class_priors[c] = len(indices) / n_train
-
-    # Compute likelihoods with add-one Laplace smoothing in log-space
-    likelihoods = {}
-    for c in classes:
-        # P(word|class) = (count(word, c) + 1) / (total words in class + V)
-        likelihoods[c] = (word_counts[c] + 1) / (total_word_counts[c] + V)
-        likelihoods[c] = np.log(likelihoods[c])  # convert to log-space
-
-    # Convert class priors to log-space
-    log_class_priors = {c: np.log(class_priors[c]) for c in classes}
-
-    model = {
+    return {
         'log_class_priors': log_class_priors,
-        'log_likelihoods': likelihoods,
-        'vocab_size': V
+        'log_likelihoods': word_likelihoods,
+        'vocab_size': vocabulary_size
     }
-    return model
 
-def predict_multinomial_nb(model, X):
-    """
-    Predict the class labels for a set of examples.
-    
-    Args:
-        model (dict): The trained model containing log class priors and log likelihoods.
-        X (np.array): Feature matrix for test examples.
+# predict class labels for test emails using the trained model
+def predict_naive_bayes(trained_model, test_feature_matrix):
+    log_class_priors = trained_model['log_class_priors']
+    log_likelihoods = trained_model['log_likelihoods']
+    unique_classes = [0, 1]  # ham/spam
+    num_test_samples = test_feature_matrix.shape[0]
+    class_predictions = []
+
+    for sample_index in range(num_test_samples):
+        class_scores = {}  # store log probabilities for each class
+        for current_class in unique_classes:
+            # log-prob of the class + sum of word probabilities for the email
+            class_scores[current_class] = log_class_priors[current_class] + np.sum(test_feature_matrix[sample_index] * log_likelihoods[current_class])
         
-    Returns:
-        predictions (np.array): Predicted class labels.
-    """
-    log_class_priors = model['log_class_priors']
-    log_likelihoods = model['log_likelihoods']
-    classes = [0, 1]
-    n_examples = X.shape[0]
-    predictions = []
-
-    for i in range(n_examples):
-        # For each test example, compute score for each class:
-        scores = {}
-        for c in classes:
-            # Score = log(P(c)) + sum_{j} count(word_j)*log(P(word_j|c))
-            scores[c] = log_class_priors[c] + np.sum(X[i] * log_likelihoods[c])
-        # Predict the class with the highest score
-        pred = max(scores, key=scores.get)
-        predictions.append(pred)
-    return np.array(predictions)
-
-def evaluate_model(y_true, y_pred):
-    """
-    Evaluate the predictions using accuracy, precision, recall, and F1-score.
+        # pick class with the highest probability
+        class_predictions.append(max(class_scores, key=class_scores.get))
     
-    Args:
-        y_true (np.array): True labels.
-        y_pred (np.array): Predicted labels.
-        
-    Returns:
-        metrics (tuple): (accuracy, precision, recall, f1_score)
-    """
-    acc = accuracy_score(y_true, y_pred)
-    prec = precision_score(y_true, y_pred)
-    rec = recall_score(y_true, y_pred)
-    f1 = f1_score(y_true, y_pred)
-    return acc, prec, rec, f1
+    return np.array(class_predictions)  # convert to numpy array
 
+# evaluate model performance using accuracy, precision, recall, and F1 score
+def evaluate_model_performance(true_labels, predicted_labels):
+    accuracy = accuracy_score(true_labels, predicted_labels)
+    precision = precision_score(true_labels, predicted_labels)
+    recall = recall_score(true_labels, predicted_labels)
+    f1 = f1_score(true_labels, predicted_labels)
+    return accuracy, precision, recall, f1
+
+# load in datasets, train model, predict, evaluate model
 def main():
-    # Example using the enron1 Bag-of-Words datasets
-    train_file = 'processed_data/enron1_bow_train.csv'
-    test_file = 'processed_data/enron1_bow_test.csv'
-    
-    # Load the training and test data
-    train_df = pd.read_csv(train_file)
-    test_df = pd.read_csv(test_file)
-    
-    # Train the model
-    model = train_multinomial_nb(train_df)
-    
-    # Prepare test features and labels
-    X_test = test_df.drop('label', axis=1).values
-    y_test = test_df['label'].values
-    
-    # Predict on the test set
-    y_pred = predict_multinomial_nb(model, X_test)
-    
-    # Evaluate the predictions
-    acc, prec, rec, f1 = evaluate_model(y_test, y_pred)
-    
-    print("Multinomial Naive Bayes (Bag of Words) Evaluation:")
-    print(f"Accuracy: {acc:.4f}")
-    print(f"Precision: {prec:.4f}")
-    print(f"Recall: {rec:.4f}")
-    print(f"F1 Score: {f1:.4f}")
+    train_filepath = '/Users/affiq/Projects/text_classification_project/processed_data/enron1_bow_train.csv'
+    test_filepath = '/Users/affiq/Projects/text_classification_project/processed_data/enron1_bow_test.csv'
+
+    # load in datasets
+    training_dataframe = pd.read_csv(train_filepath)
+    test_dataframe = pd.read_csv(test_filepath)
+
+    # train model
+    trained_model = train_multinomial_naive_bayes(training_dataframe)
+
+    # extract test set features and labels
+    test_feature_matrix = test_dataframe.drop('label', axis=1).values
+    test_labels = test_dataframe['label'].values
+
+    # predict using trained model
+    predicted_labels = predict_naive_bayes(trained_model, test_feature_matrix)
+
+    # evaluate model performance
+    accuracy, precision, recall, f1 = evaluate_model_performance(test_labels, predicted_labels)
+
+    # print metrics
+    print("Multinomial Naive Bayes (BoW) Evaluation:")
+    print(f"Accuracy:   {accuracy:.4f}")
+    print(f"Precision: {precision:.4f}")
+    print(f"Recall:    {recall:.4f}")
+    print(f"F1 Score:  {f1:.4f}")
 
 if __name__ == "__main__":
     main()

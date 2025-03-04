@@ -22,6 +22,7 @@ text_classification_project/
 
 ## Requirements
 The requirements for this project were Python 3.9 or later. I am running Python 3.12.4 in my terminal, and I also used the following dependencies:
+
 NumPy: I used for numerical computations and matrix operations.
 
 Pandas: I used to load, process, and manage CSV datasets.

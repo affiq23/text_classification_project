@@ -3,195 +3,199 @@ import pandas as pd
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.model_selection import train_test_split
 
-def sigmoid(z):
-    """Sigmoid function."""
-    # Clip z to prevent overflow
-    z = np.clip(z, -500, 500)
-    return 1 / (1 + np.exp(-z))
+# sigmoid function with overflow prevention
+def sigmoid(input_values):
+    input_values = np.clip(input_values, -500, 500)  # to prevent overflow when computing exponentials
+    return 1 / (1 + np.exp(-input_values))  # computes sigmoid function
 
-def train_logistic_regression(X_train, y_train, lambda_val=0.1, learning_rate=0.01, max_iter=1000, tol=1e-5):
-    """
-    Train logistic regression model with L2 regularization using gradient ascent.
+# train logistic regression model with L2 regularization using gradient ascent
+def train_logistic_regression(training_features, training_labels, regularization_strength=0.1, learning_rate=0.01, max_iterations=1000, convergence_tolerance=1e-5):
+    # training_features: feature matrix
+    # training_labels: binary labels (0 or 1)
+    # regularization_strength: L2 regularization parameter
+    # learning_rate: step size for gradient ascent
+    # max_iterations: max num of iterations
+    # convergence_tolerance: convergence tolerance
+
+    num_samples, num_features = training_features.shape  # get dataset dimensions
+    # add bias term
+    features_with_bias = np.c_[np.ones(num_samples), training_features]
+    model_weights = np.zeros(num_features + 1)  # initialize weights with bias
     
-    Args:
-        X_train (np.array): Feature matrix.
-        y_train (np.array): Labels.
-        lambda_val (float): L2 regularization parameter.
-        learning_rate (float): Step size for gradient ascent.
-        max_iter (int): Maximum number of iterations.
-        tol (float): Convergence tolerance.
-        
-    Returns:
-        w (np.array): Learned weights.
-    """
-    n, d = X_train.shape
-    w = np.zeros(d)  # Initialize weights
+    previous_model_loss = float('inf')  # initialize loss with infinity for convergence check
     
-    # Add bias term
-    X_train_bias = np.c_[np.ones(n), X_train]
-    w = np.zeros(d + 1)  # Initialize weights with bias
-    
-    prev_loss = float('inf')
-    
-    for i in range(max_iter):
-        # Compute predictions
-        z = np.dot(X_train_bias, w)
-        y_pred = sigmoid(z)
+    for iteration in range(max_iterations):
+        # compute predictions
+        linear_combination = np.dot(features_with_bias, model_weights)
+        predicted_probabilities = sigmoid(linear_combination)
         
-        # Compute gradient (for maximizing log-likelihood, hence the plus sign)
-        gradient = np.dot(X_train_bias.T, (y_train - y_pred))
+        # compute gradient 
+        gradient = np.dot(features_with_bias.T, (training_labels - predicted_probabilities))
         
-        # Add L2 regularization term (don't regularize bias)
-        gradient[1:] -= lambda_val * w[1:]
+        # add L2 regularization term to gradient
+        gradient[1:] -= regularization_strength * model_weights[1:]
         
-        # Update weights
-        w += learning_rate * gradient
+        # update weights
+        model_weights += learning_rate * gradient
         
-        # Compute log-likelihood with regularization (for convergence check)
-        log_likelihood = np.sum(y_train * np.log(y_pred + 1e-10) + (1 - y_train) * np.log(1 - y_pred + 1e-10))
-        # Add regularization term (don't regularize bias)
-        reg_term = 0.5 * lambda_val * np.sum(w[1:] ** 2)
-        current_loss = -(log_likelihood - reg_term) / n  # Negative because we're maximizing
+        # computes natural log of predicted probabilities
+        log_likelihood = np.sum(training_labels * np.log(predicted_probabilities + 1e-10) + 
+                                (1 - training_labels) * np.log(1 - predicted_probabilities + 1e-10))  # 1e-10 is to prevent log(0)
+        regularization_term = 0.5 * regularization_strength * np.sum(model_weights[1:] ** 2)  # computes L2 regularization term
+        current_model_loss = -(log_likelihood - regularization_term) / num_samples  # negative because maximizing log-likelihood 
         
-        # Check for convergence
-        if abs(prev_loss - current_loss) < tol:
-            print(f"Converged after {i+1} iterations.")
+        # check for convergence
+        if abs(previous_model_loss - current_model_loss) < convergence_tolerance:  # check if difference is less than tolerance
             break
             
-        prev_loss = current_loss
+        previous_model_loss = current_model_loss
         
-    return w
+    return model_weights  # returns learned weights
 
-def predict_logistic_regression(X, w):
-    """
-    Predict using logistic regression model.
+# predict logistic regression model using learned weights
+def predict_logistic_regression(test_features, learned_weights):
     
-    Args:
-        X (np.array): Feature matrix.
-        w (np.array): Learned weights.
-        
-    Returns:
-        predictions (np.array): Predicted class labels.
-    """
-    # Add bias term
-    X_bias = np.c_[np.ones(X.shape[0]), X]
+    # add bias term
+    features_with_bias = np.c_[np.ones(test_features.shape[0]), test_features]
     
-    # Compute probabilities
-    probs = sigmoid(np.dot(X_bias, w))
+    # compute probabilities
+    predicted_probabilities = sigmoid(np.dot(features_with_bias, learned_weights))
     
-    # Convert to binary predictions
-    predictions = (probs >= 0.5).astype(int)
-    
-    return predictions
+    # convert to binary predictions
+    return (predicted_probabilities >= 0.5).astype(int)
 
-def tune_lambda(X_train, y_train, lambda_values=None):
-    """
-    Tune regularization parameter lambda using validation set.
+def tune_regularization_parameter(training_features, training_labels, regularization_values=None):
+    # training_features: feature matrix
+    # training_labels: binary labels (0 or 1)
+    # regularization_values: list of lambda values to test
+  
+    if regularization_values is None:  # default values for lambda
+        regularization_values = [0.001, 0.01, 0.1, 0.5, 1.0, 5.0, 10.0]
     
-    Args:
-        X_train (np.array): Training feature matrix.
-        y_train (np.array): Training labels.
-        lambda_values (list): List of lambda values to test.
+    # split data into training and validation sets (70/30)
+    training_features_subset, validation_features, training_labels_subset, validation_labels = train_test_split(
+        training_features, training_labels, test_size=0.3, random_state=42)
+    
+    best_validation_accuracy = 0
+    best_regularization_value = regularization_values[0]
+    
+    # use list to collect results for cleaner printing
+    tuning_results = []
+    
+    for current_regularization_strength in regularization_values:
+        # train model with current lambda
+        learned_weights = train_logistic_regression(
+            training_features_subset, 
+            training_labels_subset, 
+            regularization_strength=current_regularization_strength, 
+            max_iterations=500
+        )
         
-    Returns:
-        best_lambda (float): Lambda value with highest accuracy on validation set.
-    """
-    if lambda_values is None:
-        lambda_values = [0.001, 0.01, 0.1, 0.5, 1.0, 5.0, 10.0]
-    
-    # Split data into training and validation sets (70/30)
-    X_train_split, X_val, y_train_split, y_val = train_test_split(
-        X_train, y_train, test_size=0.3, random_state=42)
-    
-    best_accuracy = 0
-    best_lambda = lambda_values[0]
-    
-    print("\nTuning lambda parameter:")
-    print("-" * 50)
-    print(f"{'Lambda':<10} {'Accuracy':<10} {'Precision':<10} {'Recall':<10} {'F1 Score':<10}")
-    print("-" * 50)
-    
-    for lambda_val in lambda_values:
-        # Train model with current lambda
-        w = train_logistic_regression(X_train_split, y_train_split, lambda_val=lambda_val, max_iter=500)
+        # evaluate on validation set
+        validation_predictions = predict_logistic_regression(validation_features, learned_weights)
         
-        # Evaluate on validation set
-        y_pred = predict_logistic_regression(X_val, w)
+        # calculate metrics
+        validation_accuracy, validation_precision, validation_recall, validation_f1 = evaluate_model_performance(
+            validation_labels, 
+            validation_predictions
+        )
         
-        # Calculate metrics
-        acc, prec, rec, f1 = evaluate_model(y_val, y_pred)
+        # store results
+        tuning_results.append({
+            'regularization_strength': current_regularization_strength,
+            'accuracy': validation_accuracy,
+            'precision': validation_precision,
+            'recall': validation_recall,
+            'f1_score': validation_f1
+        })
         
-        print(f"{lambda_val:<10.4f} {acc:<10.4f} {prec:<10.4f} {rec:<10.4f} {f1:<10.4f}")
-        
-        # Update best lambda if current accuracy is higher
-        if acc > best_accuracy:
-            best_accuracy = acc
-            best_lambda = lambda_val
+        # update best lambda if current accuracy is higher
+        if validation_accuracy > best_validation_accuracy:
+            best_validation_accuracy = validation_accuracy
+            best_regularization_value = current_regularization_strength
     
-    print(f"\nBest lambda: {best_lambda} (validation accuracy: {best_accuracy:.4f})")
-    return best_lambda
+    # print metrics in tabular format for easier comparison
+    print("\nRegularization Parameter Tuning Results:")
+    print("-" * 70)
+    print(f"{'Lambda':>10} {'Accuracy':>10} {'Precision':>10} {'Recall':>10} {'F1 Score':>10}")
+    print("-" * 70)
+    for result in tuning_results:
+        print(f"{result['regularization_strength']:>10.4f} {result['accuracy']:>10.4f} {result['precision']:>10.4f} "
+              f"{result['recall']:>10.4f} {result['f1_score']:>10.4f}")
+    
+    print(f"\nBest Lambda: {best_regularization_value} (Validation Accuracy: {best_validation_accuracy:.4f})")
+    return best_regularization_value
 
-def evaluate_model(y_true, y_pred):
-    """
-    Evaluate the predictions using accuracy, precision, recall, and F1-score.
-    
-    Args:
-        y_true (np.array): True labels.
-        y_pred (np.array): Predicted labels.
-        
-    Returns:
-        metrics (tuple): (accuracy, precision, recall, f1_score)
-    """
-    acc = accuracy_score(y_true, y_pred)
-    prec = precision_score(y_true, y_pred)
-    rec = recall_score(y_true, y_pred)
-    f1 = f1_score(y_true, y_pred)
-    return acc, prec, rec, f1
+# evaluate model performance using accuracy, precision, recall, and F1 score
+def evaluate_model_performance(true_labels, predicted_labels):
+   
+    model_accuracy = accuracy_score(true_labels, predicted_labels)
+    model_precision = precision_score(true_labels, predicted_labels)
+    model_recall = recall_score(true_labels, predicted_labels)
+    model_f1_score = f1_score(true_labels, predicted_labels)
+    return model_accuracy, model_precision, model_recall, model_f1_score
 
-def run_logistic_regression():
-    """Test the Logistic Regression implementation on all datasets with both representations."""
-    datasets = ['enron1', 'enron2', 'enron4']
-    representations = ['bow', 'bernoulli']
-    results = {}
+# test logistic regression model on all datasets
+def run_logistic_regression_experiments():
+   
+    dataset_names = ['enron1', 'enron2', 'enron4']
+    feature_representations = ['bow', 'bernoulli']
+    experimental_results = {}
     
-    for dataset in datasets:
-        for representation in representations:
-            print(f"\n\nEvaluating Logistic Regression on {dataset} dataset with {representation} representation...")
+    for dataset_name in dataset_names:
+        for representation_type in feature_representations:
+            print(f"\nEvaluating: {dataset_name} dataset | {representation_type} representation") 
+            print("-" * 50) 
             
-            # Load the training and test data
-            train_file = f'processed_data/{dataset}_{representation}_train.csv'
-            test_file = f'processed_data/{dataset}_{representation}_test.csv'
+            # load formatted training/test data
+            training_data_filepath = f'processed_data/{dataset_name}_{representation_type}_train.csv'
+            test_data_filepath = f'processed_data/{dataset_name}_{representation_type}_test.csv'
             
-            train_df = pd.read_csv(train_file)
-            test_df = pd.read_csv(test_file)
+            training_dataframe = pd.read_csv(training_data_filepath)
+            test_dataframe = pd.read_csv(test_data_filepath)
             
-            # Prepare training and test features and labels
-            X_train = train_df.drop('label', axis=1).values
-            y_train = train_df['label'].values
-            X_test = test_df.drop('label', axis=1).values
-            y_test = test_df['label'].values
+            # prepare training and test features and labels
+            training_features = training_dataframe.drop('label', axis=1).values
+            training_labels = training_dataframe['label'].values
+            test_features = test_dataframe.drop('label', axis=1).values
+            test_labels = test_dataframe['label'].values
             
-            # Tune lambda parameter
-            best_lambda = tune_lambda(X_train, y_train)
+            # tune lambda parameter
+            best_regularization_strength = tune_regularization_parameter(training_features, training_labels)
             
-            # Train model with best lambda on full training set
-            print(f"\nTraining final model with lambda={best_lambda}...")
-            w = train_logistic_regression(X_train, y_train, lambda_val=best_lambda, max_iter=1000)
+            # train model with best lambda on full training set
+            final_model_weights = train_logistic_regression(
+                training_features, 
+                training_labels, 
+                regularization_strength=best_regularization_strength, 
+                max_iterations=1000
+            )
             
-            # Predict on test set
-            y_pred = predict_logistic_regression(X_test, w)
+            # predict on test set
+            test_predictions = predict_logistic_regression(test_features, final_model_weights)
             
-            # Evaluate the predictions
-            acc, prec, rec, f1 = evaluate_model(y_test, y_pred)
-            results[f"{dataset}_{representation}"] = (acc, prec, rec, f1)
+            # evaluate predictions
+            model_accuracy, model_precision, model_recall, model_f1_score = evaluate_model_performance(
+                test_labels, 
+                test_predictions
+            )
             
-            print(f"\nTest set evaluation:")
-            print(f"Accuracy: {acc:.4f}")
-            print(f"Precision: {prec:.4f}")
-            print(f"Recall: {rec:.4f}")
-            print(f"F1 Score: {f1:.4f}")
+            # store results
+            experimental_results[f"{dataset_name}_{representation_type}"] = (
+                model_accuracy, model_precision, model_recall, model_f1_score
+            )
+            
+            # print metrics
+            print("\nTest Set Evaluation:")
+            print(f"{'Accuracy:':<15} {model_accuracy:.4f}")
+            print(f"{'Precision:':<15} {model_precision:.4f}")
+            print(f"{'Recall:':<15} {model_recall:.4f}")
+            print(f"{'F1 Score:':<15} {model_f1_score:.4f}")
     
-    return results
+    return experimental_results
+
+def main():
+    run_logistic_regression_experiments()
 
 if __name__ == "__main__":
-    run_logistic_regression()
+    main()

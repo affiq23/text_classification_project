@@ -6,184 +6,102 @@ import numpy as np
 from nltk.corpus import stopwords
 from collections import Counter
 
+# handle potential SSL certification issues; I was having an issue getting NumPy and Pandas to work
+# might not be needed anymore but I left in case
 import ssl
 try:
-    _create_unverified_https_context = ssl._create_unverified_context
-except AttributeError:
+    ssl._create_default_https_context = ssl._create_unverified_context
+except:
     pass
-else:
-    ssl._create_default_https_context = _create_unverified_https_context
 
-import nltk
-nltk.download('stopwords')
+# download stopwords if not already present; should only need once but I kept 
+nltk.download('stopwords', quiet=True)
 
-def read_emails(directory):
-    """Read all email files from a directory."""
-    emails = []
-    for filename in os.listdir(directory):
-        filepath = os.path.join(directory, filename)
-        if os.path.isfile(filepath):
+# collects email contents from a specified directory and handles errors if any
+def get_emails(email_folder):
+    collected_emails = []  # store email contents
+    for email_file in os.listdir(email_folder):  # iterate 
+        full_path = os.path.join(email_folder, email_file)  # construct full path
+        if os.path.isfile(full_path): 
             try:
-                with open(filepath, 'r', errors='ignore') as f:
-                    content = f.read()
-                    emails.append(content)
-            except Exception as e:
-                print(f"Error reading {filepath}: {e}")
-    return emails
+                with open(full_path, 'r', encoding='utf-8', errors='ignore') as file: 
+                    collected_emails.append(file.read())  # store email content
+            except IOError:  # handle read errors
+                print(f"Skipping {full_path}") 
+    return collected_emails  
 
-def preprocess_text(text):
-    """Convert text to lowercase, remove punctuation, and tokenize."""
-    # Convert to lowercase
-    text = text.lower()
-    
-    # Remove punctuation and non-alphanumeric characters
-    text = re.sub(r'[^\w\s]', '', text)
-    
-    # Tokenize (split into words)
-    words = text.split()
-    
-    # Remove stopwords
-    stop_words = set(stopwords.words('english'))
-    words = [word for word in words if word not in stop_words and len(word) > 1]
-    
-    return words
+# basically clean text
+def clean_and_tokenize(raw_text):
+    cleaned_text = re.sub(r'[^a-zA-Z\s]', '', raw_text.lower())  # remove non-word characters, make lowercase
+    word_tokens = cleaned_text.split()  
+    stop_words = set(stopwords.words('english')) 
+    return [word for word in word_tokens if word not in stop_words and len(word) > 1]  # filter stopwords and short words
 
-def build_vocabulary(processed_emails, max_features=5000):
-    """
-    Build a vocabulary from a list of processed emails.
-    Limit to max_features most common words to keep matrix size manageable.
-    """
-    # Count all words
-    word_counts = Counter()
+# create a focused vocabulary from list of processed emails
+def get_top_words(processed_emails, max_word_count=1000):  # limit vocabulary size to 1000 words: wanted to limit overfitting
+    word_frequency = Counter()  
     for email in processed_emails:
-        word_counts.update(email)
-    
-    # Get the most common words
-    most_common = word_counts.most_common(max_features)
-    vocabulary = [word for word, count in most_common]
-    
-    return vocabulary
+        word_frequency.update(email)  # update count from each email
+    return [word for word, _ in word_frequency.most_common(max_word_count)] 
 
-def email_to_bow_vector(email, word_to_index):
-    """Convert an email to a Bag of Words vector."""
-    vector = [0] * len(word_to_index)
-    for word in email:
-        if word in word_to_index:
-            vector[word_to_index[word]] += 1
-    return vector
+# generate feature vectors using BoW representation
+def create_feature_vector(email_tokens, word_mapping):
+    return [email_tokens.count(word) for word in word_mapping]  # count occurrences of each word in vocabulary
 
-def email_to_bernoulli_vector(email, word_to_index):
-    """Convert an email to a Bernoulli vector."""
-    vector = [0] * len(word_to_index)
-    for word in email:
-        if word in word_to_index:
-            vector[word_to_index[word]] = 1
-    return vector
-
-def process_dataset(dataset_name, base_dir, max_features=5000):
-    """
-    Process a single dataset (train and test) into BoW and Bernoulli representations.
+# process email datasets
+def process_dataset(dataset_name, project_root, max_features=1000):  
+    print(f"processing dataset: {dataset_name}")
     
-    Args:
-        dataset_name (str): Name of the dataset (e.g., 'enron1')
-        base_dir (str): Base directory containing the datasets
-        max_features (int): Maximum number of features to include in the vocabulary
-    """
-    print(f"Processing {dataset_name}...")
+    dataset_path = os.path.join(project_root, dataset_name)  # dataset directory
     
-    # Construct paths to the dataset directories
-    dataset_dir = os.path.join(base_dir, dataset_name)
-    train_spam_dir = os.path.join(dataset_dir, 'train', 'spam')
-    train_ham_dir = os.path.join(dataset_dir, 'train', 'ham')
-    test_spam_dir = os.path.join(dataset_dir, 'test', 'spam')
-    test_ham_dir = os.path.join(dataset_dir, 'test', 'ham')
+    # define folders
+    train_spam_dir, train_ham_dir = os.path.join(dataset_path, 'train', 'spam'), os.path.join(dataset_path, 'train', 'ham')
+    test_spam_dir, test_ham_dir = os.path.join(dataset_path, 'test', 'spam'), os.path.join(dataset_path, 'test', 'ham')
     
-    # Read and preprocess emails
-    print("Reading and preprocessing emails...")
-    train_spam = [preprocess_text(email) for email in read_emails(train_spam_dir)]
-    train_ham = [preprocess_text(email) for email in read_emails(train_ham_dir)]
-    test_spam = [preprocess_text(email) for email in read_emails(test_spam_dir)]
-    test_ham = [preprocess_text(email) for email in read_emails(test_ham_dir)]
+    # read and process emails
+    train_spam_emails = [clean_and_tokenize(email) for email in get_emails(train_spam_dir)]
+    train_ham_emails = [clean_and_tokenize(email) for email in get_emails(train_ham_dir)]
+    test_spam_emails = [clean_and_tokenize(email) for email in get_emails(test_spam_dir)]
+    test_ham_emails = [clean_and_tokenize(email) for email in get_emails(test_ham_dir)]
     
-    # Build vocabulary from training data only
-    print("Building vocabulary...")
-    all_train_processed = train_spam + train_ham
-    vocabulary = build_vocabulary(all_train_processed, max_features)
+    # build vocabulary from training data
+    vocabulary = get_top_words(train_spam_emails + train_ham_emails, max_features)
     
-    # Create word to index mapping
-    word_to_index = {word: idx for idx, word in enumerate(vocabulary)}
+    # create feature vectors for all email sets
+    train_spam_features = [create_feature_vector(email, vocabulary) for email in train_spam_emails]
+    train_ham_features = [create_feature_vector(email, vocabulary) for email in train_ham_emails]
+    test_spam_features = [create_feature_vector(email, vocabulary) for email in test_spam_emails]
+    test_ham_features = [create_feature_vector(email, vocabulary) for email in test_ham_emails]
     
-    # Convert emails to feature vectors
-    print("Converting emails to feature vectors...")
-    # Training set
-    train_spam_bow = [email_to_bow_vector(email, word_to_index) for email in train_spam]
-    train_ham_bow = [email_to_bow_vector(email, word_to_index) for email in train_ham]
-    train_spam_bernoulli = [email_to_bernoulli_vector(email, word_to_index) for email in train_spam]
-    train_ham_bernoulli = [email_to_bernoulli_vector(email, word_to_index) for email in train_ham]
+    # convert feature vectors to DataFrame
+    def prepare_dataframe(features, labels, vocab):
+        df = pd.DataFrame(features, columns=vocab)  # create DataFrame with vocabulary as columns
+        df['label'] = labels  # add label column (1 = spam, 0 = ham)
+        return df
     
-    # Test set
-    test_spam_bow = [email_to_bow_vector(email, word_to_index) for email in test_spam]
-    test_ham_bow = [email_to_bow_vector(email, word_to_index) for email in test_ham]
-    test_spam_bernoulli = [email_to_bernoulli_vector(email, word_to_index) for email in test_spam]
-    test_ham_bernoulli = [email_to_bernoulli_vector(email, word_to_index) for email in test_ham]
+    # create labeled datasets
+    output_mappings = {
+        'bow_train': (train_spam_features + train_ham_features, [1] * len(train_spam_features) + [0] * len(train_ham_features)),
+        'bow_test': (test_spam_features + test_ham_features, [1] * len(test_spam_features) + [0] * len(test_ham_features)),
+        'bernoulli_train': (train_spam_features + train_ham_features, [1] * len(train_spam_features) + [0] * len(train_ham_features)),
+        'bernoulli_test': (test_spam_features + test_ham_features, [1] * len(test_spam_features) + [0] * len(test_ham_features))
+    }
     
-    # Create labels (1 for spam, 0 for ham)
-    train_spam_labels = [1] * len(train_spam_bow)
-    train_ham_labels = [0] * len(train_ham_bow)
-    test_spam_labels = [1] * len(test_spam_bow)
-    test_ham_labels = [0] * len(test_ham_bow)
+    os.makedirs('processed_data', exist_ok=True)  # make sure output directory exists
+    for name, (features, labels) in output_mappings.items():
+        prepare_dataframe(features, labels, vocabulary).to_csv(f'processed_data/{dataset_name}_{name}.csv', index=False)  # save CSV
     
-    # Combine spam and ham examples
-    train_bow_features = train_spam_bow + train_ham_bow
-    train_bow_labels = train_spam_labels + train_ham_labels
-    test_bow_features = test_spam_bow + test_ham_bow
-    test_bow_labels = test_spam_labels + test_ham_labels
-    
-    train_bernoulli_features = train_spam_bernoulli + train_ham_bernoulli
-    train_bernoulli_labels = train_spam_labels + train_ham_labels
-    test_bernoulli_features = test_spam_bernoulli + test_ham_bernoulli
-    test_bernoulli_labels = test_spam_labels + test_ham_labels
-    
-    # Save datasets to CSV files
-    print("Saving datasets to CSV files...")
-    
-    # Create DataFrames
-    train_bow_df = pd.DataFrame(train_bow_features, columns=vocabulary)
-    train_bow_df['label'] = train_bow_labels
-    
-    test_bow_df = pd.DataFrame(test_bow_features, columns=vocabulary)
-    test_bow_df['label'] = test_bow_labels
-    
-    train_bernoulli_df = pd.DataFrame(train_bernoulli_features, columns=vocabulary)
-    train_bernoulli_df['label'] = train_bernoulli_labels
-    
-    test_bernoulli_df = pd.DataFrame(test_bernoulli_features, columns=vocabulary)
-    test_bernoulli_df['label'] = test_bernoulli_labels
-    
-    # Save to CSV
-    output_dir = 'processed_data'
-    os.makedirs(output_dir, exist_ok=True)
-    
-    train_bow_df.to_csv(os.path.join(output_dir, f'{dataset_name}_bow_train.csv'), index=False)
-    test_bow_df.to_csv(os.path.join(output_dir, f'{dataset_name}_bow_test.csv'), index=False)
-    train_bernoulli_df.to_csv(os.path.join(output_dir, f'{dataset_name}_bernoulli_train.csv'), index=False)
-    test_bernoulli_df.to_csv(os.path.join(output_dir, f'{dataset_name}_bernoulli_test.csv'), index=False)
-    
-    print(f"Finished processing {dataset_name}.")
-    print(f"Vocabulary size: {len(vocabulary)}")
-    print(f"Training examples: {len(train_bow_features)}")
-    print(f"Test examples: {len(test_bow_features)}")
-    print()
+    # print dataset summary
+    print(f"completed {dataset_name}")
+    print(f"vocabulary size: {len(vocabulary)}")
+    print(f"total training examples: {len(output_mappings['bow_train'][0])}")
+    print(f"total test examples: {len(output_mappings['bow_test'][0])}\n")
 
 def main():
-    """Main function to process all datasets."""
-    # Base directory where all datasets are located
-    base_dir = '/Users/affiq/Projects/text_classification_project/datasets'  
-    
-    # Process each dataset
-    datasets = ['enron1', 'enron2', 'enron4']
-    for dataset_name in datasets:
-        process_dataset(dataset_name, base_dir)
+    dataset_directory = '/Users/affiq/Projects/text_classification_project/datasets'  # IMPORTANT: change this line to your directory to run
+    target_datasets = ['enron1', 'enron2', 'enron4']  # datasets to process
+    for dataset in target_datasets:
+        process_dataset(dataset, dataset_directory)  # process each dataset
 
 if __name__ == "__main__":
-    main()
+    main()  

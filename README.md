@@ -6,7 +6,6 @@ CS4375.004
 ## Overview
 This project implements Naive Bayes and Logistic Regression for spam detection using email datasets. 
 
-
 ## File Structure 
 This is how I organized my file structure in my local environment.
 ```bash
@@ -43,21 +42,26 @@ python3 first_phase.py
 This will generate the Bag of Words (BoW) and Bernoulli feature matrices and store them in the `processed_data/` directory as CSV files.
 
 ### Step 2: Train and Evaluate Multinomial Naive Bayes (BoW Model)
+Run the following command to train and evaluate the Multinomial Naive Bayes model using the BoW representation:
 ```bash
 python3 second_phase.py
 ```
-Expected output (example):
+
+### Step 3: Train and Evaluate Bernoulli Naive Bayes (Bernoulli Model)
+Run the following command to train and evaluate the Bernoulli Naive Bayes model using the Bernoulli representation:
+```bash
+python3 third_phase.py
 ```
-Multinomial Naive Bayes (Bag of Words) Evaluation:
-Accuracy: 0.9364
-Precision: 0.9000
-Recall: 0.9060
-F1 Score: 0.9030
+
+### Step 4: Train and Evaluate Logistic Regression
+Run the following command to train and evaluate the Logistic Regression model:
+```bash
+python3 fourth_phase.py
 ```
 
 ## Troubleshooting
 
+1. **Dependencies**: make sure all required dependencies are installed using the provided `pip install` command; I had some issues with the depenencies working with my local environment, so if the project isn't running, this is probably the main error.
 
-
-
+2. **File Path**: I have my local file path listed in each part of the project, so that might need to be changed if running locally on another machine.
 

@@ -1,0 +1,18 @@
+processing dataset: enron1
+completed enron1
+vocabulary size: 1000
+total training examples: 450
+total test examples: 456
+
+processing dataset: enron2
+completed enron2
+vocabulary size: 1000
+total training examples: 463
+total test examples: 478
+
+processing dataset: enron4
+completed enron4
+vocabulary size: 1000
+total training examples: 535
+total test examples: 543
+

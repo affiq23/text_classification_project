@@ -1,7 +1,7 @@
 # Text Classification Project
 Affiq Mohammed
 
-CS4375.004
+
 
 ## Overview
 This project implements Naive Bayes and Logistic Regression for spam detection using email datasets. 

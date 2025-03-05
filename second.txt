@@ -1,0 +1,5 @@
+Multinomial Naive Bayes (BoW) Evaluation:
+Accuracy:   0.9320
+Precision: 0.8782
+Recall:    0.9195
+F1 Score:  0.8984

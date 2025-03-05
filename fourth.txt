@@ -1,0 +1,324 @@
+
+Evaluating: enron1 dataset | BoW
+--------------------------------------------------
+
+Tuning Results:
+Lambda: 0.001
+  Accuracy:   0.9852
+  Precision:  0.9800
+  Recall:     0.9800
+  F1 Score:   0.9800
+
+Lambda: 0.01
+  Accuracy:   0.9852
+  Precision:  0.9800
+  Recall:     0.9800
+  F1 Score:   0.9800
+
+Lambda: 0.1
+  Accuracy:   0.9778
+  Precision:  0.9608
+  Recall:     0.9800
+  F1 Score:   0.9703
+
+Lambda: 0.5
+  Accuracy:   0.9778
+  Precision:  0.9608
+  Recall:     0.9800
+  F1 Score:   0.9703
+
+Lambda: 1.0
+  Accuracy:   0.9778
+  Precision:  0.9608
+  Recall:     0.9800
+  F1 Score:   0.9703
+
+Lambda: 5.0
+  Accuracy:   0.9852
+  Precision:  0.9800
+  Recall:     0.9800
+  F1 Score:   0.9800
+
+Lambda: 10.0
+  Accuracy:   0.9630
+  Precision:  0.9787
+  Recall:     0.9200
+  F1 Score:   0.9485
+
+Best Lambda: 0.001 (Validation Accuracy: 0.9852)
+
+Test Set Evaluation:
+Accuracy:       0.9583
+Precision:      0.8963
+Recall:         0.9866
+F1 Score:       0.9393
+
+Evaluating: enron1 dataset | Bernoulli
+--------------------------------------------------
+
+Tuning Results:
+Lambda: 0.001
+  Accuracy:   0.9852
+  Precision:  0.9800
+  Recall:     0.9800
+  F1 Score:   0.9800
+
+Lambda: 0.01
+  Accuracy:   0.9852
+  Precision:  0.9800
+  Recall:     0.9800
+  F1 Score:   0.9800
+
+Lambda: 0.1
+  Accuracy:   0.9778
+  Precision:  0.9608
+  Recall:     0.9800
+  F1 Score:   0.9703
+
+Lambda: 0.5
+  Accuracy:   0.9778
+  Precision:  0.9608
+  Recall:     0.9800
+  F1 Score:   0.9703
+
+Lambda: 1.0
+  Accuracy:   0.9778
+  Precision:  0.9608
+  Recall:     0.9800
+  F1 Score:   0.9703
+
+Lambda: 5.0
+  Accuracy:   0.9852
+  Precision:  0.9800
+  Recall:     0.9800
+  F1 Score:   0.9800
+
+Lambda: 10.0
+  Accuracy:   0.9630
+  Precision:  0.9787
+  Recall:     0.9200
+  F1 Score:   0.9485
+
+Best Lambda: 0.001 (Validation Accuracy: 0.9852)
+
+Test Set Evaluation:
+Accuracy:       0.9583
+Precision:      0.8963
+Recall:         0.9866
+F1 Score:       0.9393
+
+Evaluating: enron2 dataset | BoW
+--------------------------------------------------
+
+Tuning Results:
+Lambda: 0.001
+  Accuracy:   0.9209
+  Precision:  0.8627
+  Recall:     0.9167
+  F1 Score:   0.8889
+
+Lambda: 0.01
+  Accuracy:   0.9209
+  Precision:  0.8627
+  Recall:     0.9167
+  F1 Score:   0.8889
+
+Lambda: 0.1
+  Accuracy:   0.9209
+  Precision:  0.8627
+  Recall:     0.9167
+  F1 Score:   0.8889
+
+Lambda: 0.5
+  Accuracy:   0.9281
+  Precision:  0.8654
+  Recall:     0.9375
+  F1 Score:   0.9000
+
+Lambda: 1.0
+  Accuracy:   0.9281
+  Precision:  0.8654
+  Recall:     0.9375
+  F1 Score:   0.9000
+
+Lambda: 5.0
+  Accuracy:   0.9424
+  Precision:  0.9000
+  Recall:     0.9375
+  F1 Score:   0.9184
+
+Lambda: 10.0
+  Accuracy:   0.9065
+  Precision:  0.9070
+  Recall:     0.8125
+  F1 Score:   0.8571
+
+Best Lambda: 5.0 (Validation Accuracy: 0.9424)
+
+Test Set Evaluation:
+Accuracy:       0.9477
+Precision:      0.9008
+Recall:         0.9077
+F1 Score:       0.9042
+
+Evaluating: enron2 dataset | Bernoulli
+--------------------------------------------------
+
+Tuning Results:
+Lambda: 0.001
+  Accuracy:   0.9209
+  Precision:  0.8627
+  Recall:     0.9167
+  F1 Score:   0.8889
+
+Lambda: 0.01
+  Accuracy:   0.9209
+  Precision:  0.8627
+  Recall:     0.9167
+  F1 Score:   0.8889
+
+Lambda: 0.1
+  Accuracy:   0.9209
+  Precision:  0.8627
+  Recall:     0.9167
+  F1 Score:   0.8889
+
+Lambda: 0.5
+  Accuracy:   0.9281
+  Precision:  0.8654
+  Recall:     0.9375
+  F1 Score:   0.9000
+
+Lambda: 1.0
+  Accuracy:   0.9281
+  Precision:  0.8654
+  Recall:     0.9375
+  F1 Score:   0.9000
+
+Lambda: 5.0
+  Accuracy:   0.9424
+  Precision:  0.9000
+  Recall:     0.9375
+  F1 Score:   0.9184
+
+Lambda: 10.0
+  Accuracy:   0.9065
+  Precision:  0.9070
+  Recall:     0.8125
+  F1 Score:   0.8571
+
+Best Lambda: 5.0 (Validation Accuracy: 0.9424)
+
+Test Set Evaluation:
+Accuracy:       0.9477
+Precision:      0.9008
+Recall:         0.9077
+F1 Score:       0.9042
+
+Evaluating: enron4 dataset | BoW
+--------------------------------------------------
+
+Tuning Results:
+Lambda: 0.001
+  Accuracy:   0.9379
+  Precision:  0.9333
+  Recall:     0.9825
+  F1 Score:   0.9573
+
+Lambda: 0.01
+  Accuracy:   0.9379
+  Precision:  0.9333
+  Recall:     0.9825
+  F1 Score:   0.9573
+
+Lambda: 0.1
+  Accuracy:   0.9379
+  Precision:  0.9333
+  Recall:     0.9825
+  F1 Score:   0.9573
+
+Lambda: 0.5
+  Accuracy:   0.9503
+  Precision:  0.9344
+  Recall:     1.0000
+  F1 Score:   0.9661
+
+Lambda: 1.0
+  Accuracy:   0.9317
+  Precision:  0.9120
+  Recall:     1.0000
+  F1 Score:   0.9540
+
+Lambda: 5.0
+  Accuracy:   0.9130
+  Precision:  0.8906
+  Recall:     1.0000
+  F1 Score:   0.9421
+
+Lambda: 10.0
+  Accuracy:   0.9130
+  Precision:  0.8906
+  Recall:     1.0000
+  F1 Score:   0.9421
+
+Best Lambda: 0.5 (Validation Accuracy: 0.9503)
+
+Test Set Evaluation:
+Accuracy:       0.9650
+Precision:      0.9559
+Recall:         0.9974
+F1 Score:       0.9762
+
+Evaluating: enron4 dataset | Bernoulli
+--------------------------------------------------
+
+Tuning Results:
+Lambda: 0.001
+  Accuracy:   0.9379
+  Precision:  0.9333
+  Recall:     0.9825
+  F1 Score:   0.9573
+
+Lambda: 0.01
+  Accuracy:   0.9379
+  Precision:  0.9333
+  Recall:     0.9825
+  F1 Score:   0.9573
+
+Lambda: 0.1
+  Accuracy:   0.9379
+  Precision:  0.9333
+  Recall:     0.9825
+  F1 Score:   0.9573
+
+Lambda: 0.5
+  Accuracy:   0.9503
+  Precision:  0.9344
+  Recall:     1.0000
+  F1 Score:   0.9661
+
+Lambda: 1.0
+  Accuracy:   0.9317
+  Precision:  0.9120
+  Recall:     1.0000
+  F1 Score:   0.9540
+
+Lambda: 5.0
+  Accuracy:   0.9130
+  Precision:  0.8906
+  Recall:     1.0000
+  F1 Score:   0.9421
+
+Lambda: 10.0
+  Accuracy:   0.9130
+  Precision:  0.8906
+  Recall:     1.0000
+  F1 Score:   0.9421
+
+Best Lambda: 0.5 (Validation Accuracy: 0.9503)
+
+Test Set Evaluation:
+Accuracy:       0.9650
+Precision:      0.9559
+Recall:         0.9974
+F1 Score:       0.9762

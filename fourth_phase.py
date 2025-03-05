@@ -65,11 +65,7 @@ def predict_logistic_regression(test_features, learned_weights):
     return (predicted_probabilities >= 0.5).astype(int)
 
 def tune_regularization_parameter(training_features, training_labels, regularization_values=None):
-    # training_features: feature matrix
-    # training_labels: binary labels (0 or 1)
-    # regularization_values: list of lambda values to test
-  
-    if regularization_values is None:  # default values for lambda
+    if regularization_values is None:
         regularization_values = [0.001, 0.01, 0.1, 0.5, 1.0, 5.0, 10.0]
     
     # split data into training and validation sets (70/30)
@@ -114,16 +110,17 @@ def tune_regularization_parameter(training_features, training_labels, regulariza
             best_validation_accuracy = validation_accuracy
             best_regularization_value = current_regularization_strength
     
-    # print metrics in tabular format for easier comparison
-    print("\nRegularization Parameter Tuning Results:")
-    print("-" * 70)
-    print(f"{'Lambda':>10} {'Accuracy':>10} {'Precision':>10} {'Recall':>10} {'F1 Score':>10}")
-    print("-" * 70)
+    # print metrics in list format
+    print("\nTuning Results:")
     for result in tuning_results:
-        print(f"{result['regularization_strength']:>10.4f} {result['accuracy']:>10.4f} {result['precision']:>10.4f} "
-              f"{result['recall']:>10.4f} {result['f1_score']:>10.4f}")
+        print(f"Lambda: {result['regularization_strength']}")
+        print(f"  Accuracy:   {result['accuracy']:.4f}")
+        print(f"  Precision:  {result['precision']:.4f}")
+        print(f"  Recall:     {result['recall']:.4f}")
+        print(f"  F1 Score:   {result['f1_score']:.4f}")
+        print()
     
-    print(f"\nBest Lambda: {best_regularization_value} (Validation Accuracy: {best_validation_accuracy:.4f})")
+    print(f"Best Lambda: {best_regularization_value} (Validation Accuracy: {best_validation_accuracy:.4f})")
     return best_regularization_value
 
 # evaluate model performance using accuracy, precision, recall, and F1 score
@@ -139,12 +136,12 @@ def evaluate_model_performance(true_labels, predicted_labels):
 def run_logistic_regression_experiments():
    
     dataset_names = ['enron1', 'enron2', 'enron4']
-    feature_representations = ['bow', 'bernoulli']
+    feature_representations = ['BoW', 'Bernoulli']
     experimental_results = {}
     
     for dataset_name in dataset_names:
         for representation_type in feature_representations:
-            print(f"\nEvaluating: {dataset_name} dataset | {representation_type} representation") 
+            print(f"\nEvaluating: {dataset_name} dataset | {representation_type}") 
             print("-" * 50) 
             
             # load formatted training/test data

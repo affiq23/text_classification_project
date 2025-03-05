@@ -15,7 +15,7 @@ except:
     pass
 
 # download stopwords if not already present; should only need once but I kept 
-nltk.download('stopwords', quiet=True)
+nltk.download('stopwords', quiet = True)
 
 # collects email contents from a specified directory and handles errors if any
 def get_emails(email_folder):
@@ -32,7 +32,7 @@ def get_emails(email_folder):
 
 # basically clean text
 def clean_and_tokenize(raw_text):
-    cleaned_text = re.sub(r'[^a-zA-Z\s]', '', raw_text.lower())  # remove non-word characters, make lowercase
+    cleaned_text = ''.join(char if char.isalpha() or char.isspace() else '' for char in raw_text) # remove non-word characters, make lowercase
     word_tokens = cleaned_text.split()  
     stop_words = set(stopwords.words('english')) 
     return [word for word in word_tokens if word not in stop_words and len(word) > 1]  # filter stopwords and short words
@@ -49,10 +49,10 @@ def create_feature_vector(email_tokens, word_mapping):
     return [email_tokens.count(word) for word in word_mapping]  # count occurrences of each word in vocabulary
 
 # process email datasets
-def process_dataset(dataset_name, project_root, max_features=1000):  
+def process_dataset(dataset_name, root_dir, max_features=1000):  
     print(f"processing dataset: {dataset_name}")
     
-    dataset_path = os.path.join(project_root, dataset_name)  # dataset directory
+    dataset_path = os.path.join(root_dir, dataset_name)  # dataset directory
     
     # define folders
     train_spam_dir, train_ham_dir = os.path.join(dataset_path, 'train', 'spam'), os.path.join(dataset_path, 'train', 'ham')

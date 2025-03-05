@@ -1,0 +1,5 @@
+Bernoulli Naive Bayes Evaluation:
+Accuracy:   0.9232
+Precision: 0.9130
+Recall:    0.8456
+F1 Score:  0.8780

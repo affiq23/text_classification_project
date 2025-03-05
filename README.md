@@ -17,6 +17,7 @@ text_classification_project/
 │── third_phase.py          # implements Bernoulli Naive Bayes classifier
 │── fourth_phase.py         # implements Logistic Regression
 │── README.md               # documentation
+│── first-fourth.txt        # text files containing the output for each phase
 ```
 
 ## Requirements
@@ -61,7 +62,7 @@ python3 fourth_phase.py
 
 ## Troubleshooting
 
-1. **Dependencies**: make sure all required dependencies are installed using the provided `pip install` command; I had some issues with the depenencies working with my local environment, so if the project isn't running, this is probably the main error.
+1. **Dependencies**: make sure all required dependencies are installed using the provided `pip install` command; I had some issues with the dependencies working with my local environment, so if the project isn't running, this is probably the main error.
 
 2. **File Path**: I have my local file path listed in each part of the project, so that might need to be changed if running locally on another machine.
 
